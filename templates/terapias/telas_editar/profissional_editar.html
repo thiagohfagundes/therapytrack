@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Editar profissional{% endblock %}
+
+{% block content %}
+<section style="max-width:700px;margin:0 auto;padding:1rem;">
+  <h2 style="margin-bottom:1rem;">Editar profissional</h2>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div style="display:grid;gap:0.75rem;">
+      <div>
+        <label for="{{ form.nome.id_for_label }}">{{ form.nome.label }}</label><br>
+        {{ form.nome }}{{ form.nome.errors }}
+      </div>
+      <div>
+        <label for="{{ form.tipo.id_for_label }}">{{ form.tipo.label }}</label><br>
+        {{ form.tipo }}{{ form.tipo.errors }}
+      </div>
+      <div>
+        <label for="{{ form.especialidade.id_for_label }}">{{ form.especialidade.label }}</label><br>
+        {{ form.especialidade }}{{ form.especialidade.errors }}
+      </div>
+      <div>
+        <label for="{{ form.telefone.id_for_label }}">{{ form.telefone.label }}</label><br>
+        {{ form.telefone }}{{ form.telefone.errors }}
+      </div>
+      <div>
+        <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label><br>
+        {{ form.email }}{{ form.email.errors }}
+      </div>
+      <div>
+        <label for="{{ form.clinica.id_for_label }}">{{ form.clinica.label }}</label><br>
+        {{ form.clinica }}{{ form.clinica.errors }}
+      </div>
+    </div>
+
+    <div style="margin-top:1rem;display:flex;gap:.5rem;">
+      <button type="submit">Salvar alterações</button>
+      <a href="{% url 'terapias:detalhes-profissional' object.pk %}">Cancelar</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

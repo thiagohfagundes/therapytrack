@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Crianças{% endblock %}
+
+{% block content %}
+<section style="max-width:900px;margin:0 auto;padding:1rem;">
+  <header style="display:flex;gap:1rem;align-items:center;justify-content:space-between;">
+    <h2 style="margin:0;">Crianças</h2>
+    <a href="{% url 'usuario:crianca-criar' %}">+ Nova criança</a>
+  </header>
+
+  <form method="get" style="margin:1rem 0;">
+    <input type="search" name="q" value="{{ request.GET.q }}" placeholder="buscar por nome, condição ou telefone" style="width:100%;max-width:520px;">
+  </form>
+
+  {% if criancas %}
+    <ul style="list-style:none;padding:0;margin:0;display:grid;gap:0.5rem;">
+      {% for c in criancas %}
+        <li style="border:1px solid #e5e7eb;border-radius:8px;padding:0.75rem;">
+          <div style="display:flex;justify-content:space-between;gap:.5rem;align-items:baseline;">
+            <a href="{% url 'usuario:detalhes-crianca' c.pk %}">
+              <strong>{{ c.nome }}</strong>
+            </a>
+            <div style="display:flex;gap:.5rem;">
+              <a href="{% url 'usuario:editar-crianca' c.pk %}" style="font-size:.85rem;">Editar</a>
+              <a href="{% url 'usuario:deletar-crianca' c.pk %}" style="font-size:.85rem;">Excluir</a>
+            </div>
+          </div>
+          <div style="font-size:.9rem;color:#555;">
+            {{ c.condicao|default:"—" }}
+          </div>
+          <div style="font-size:.85rem;color:#666;margin-top:.25rem;">
+            Nasc.: {{ c.data_nascimento|date:"d/m/Y" }} • Tel.: {{ c.telefone_contato|default:"—" }}
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+
+    {% if is_paginated %}
+      <nav style="margin-top:1rem;display:flex;gap:.5rem;align-items:center;">
+        {% if page_obj.has_previous %}
+          <a href="?q={{ request.GET.q }}&page={{ page_obj.previous_page_number }}">‹ anterior</a>
+        {% endif %}
+        <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a href="?q={{ request.GET.q }}&page={{ page_obj.next_page_number }}">próxima ›</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  {% else %}
+    <p>Nenhuma criança encontrada.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Novo evento{% endblock %}
+
+{% block head_js %}
+  {{ block.super }}
+  <script>
+    // comportamento "Google": ao escolher início, sugere término +1h
+    function sugerirTermino() {
+      const inicio = document.getElementById("id_hora_inicio");
+      const fim = document.getElementById("id_hora_fim");
+      if (!inicio || !fim || !inicio.value) return;
+      // só sugere se o usuário ainda não mexeu no fim
+      if (!fim.dataset.userEdited) {
+        const [h, m] = inicio.value.split(":").map(Number);
+        const end = new Date(2000, 0, 1, h, m);
+        end.setMinutes(end.getMinutes() + 60);
+        const hh = String(end.getHours()).padStart(2, "0");
+        const mm = String(end.getMinutes()).padStart(2, "0");
+        fim.value = `${hh}:${mm}`;
+      }
+    }
+    function markUserEdited(e){ e.target.dataset.userEdited = "1"; }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const inicio = document.getElementById("id_hora_inicio");
+      const fim = document.getElementById("id_hora_fim");
+      if (inicio) inicio.addEventListener("change", sugerirTermino);
+      if (fim) fim.addEventListener("change", markUserEdited);
+
+      // se este template estiver embutido como modal, abrimos automaticamente
+      const dlg = document.getElementById("eventoModal");
+      if (dlg && typeof dlg.showModal === "function") {
+        // só abre se tiver o atributo data-autoshow
+        if (dlg.hasAttribute("data-autoshow")) dlg.showModal();
+      }
+    });
+
+    function fecharModal() {
+      const dlg = document.getElementById("eventoModal");
+      if (dlg && dlg.open) dlg.close();
+    }
+  </script>
+{% endblock %}
+
+{% block content %}
+
+<button type="button" onclick="document.getElementById('eventoModal').showModal()">+ Novo evento</button>
+<a href="{% url 'terapias:criar-rotina' %}">Nova rotina</a>
+
+{% include "terapias/componentes/modal_evento.html" %}
+{% endblock %}
