@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Nova criança{% endblock %}
+
+{% block content %}
+  <section style="max-width:640px;margin:0 auto;padding:1rem;">
+    <h2 style="margin-bottom:1rem;">Cadastrar criança</h2>
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {# bloco para customização futura dos campos (ex: classes do Tailwind/Bootstrap) #}
+      {% block form_fields %}
+        <div style="display:grid;gap:0.75rem;">
+          {{ form.non_field_errors }}
+          <div>
+            <label>{{ form.nome.label }}</label><br>
+            {{ form.nome }}
+            {{ form.nome.errors }}
+          </div>
+          <div>
+            <label>{{ form.condicao.label }}</label><br>
+            {{ form.condicao }}
+            {{ form.condicao.errors }}
+          </div>
+          <div>
+            <label>{{ form.data_nascimento.label }}</label><br>
+            {{ form.data_nascimento }}
+            {{ form.data_nascimento.errors }}
+          </div>
+          <div>
+            <label>{{ form.telefone_contato.label }}</label><br>
+            {{ form.telefone_contato }}
+            {{ form.telefone_contato.errors }}
+          </div>
+        </div>
+      {% endblock %}
+
+      <div style="margin-top:1rem;display:flex;gap:0.5rem;">
+        <button type="submit">Salvar</button>
+        <a href="{% url 'usuario:lista-criancas' %}">Cancelar</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}

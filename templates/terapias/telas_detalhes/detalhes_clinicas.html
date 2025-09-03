@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}{{ clinica.nome }}{% endblock %}
+
+{% block content %}
+<section style="max-width:800px;margin:0 auto;padding:1rem;">
+  <a href="{% url 'terapias:lista-clinicas' %}">← Voltar</a>
+  <h2 style="margin-top:.5rem;">{{ clinica.nome }}</h2>
+
+  <dl style="display:grid;grid-template-columns:180px 1fr;gap:.5rem 1rem;">
+    <dt>Endereço</dt><dd>{{ clinica.endereco|default:"—" }}</dd>
+    <dt>Telefone</dt><dd>{{ clinica.telefone|default:"—" }}</dd>
+    <dt>Criada em</dt><dd>{{ clinica.data_criacao|date:"d/m/Y H:i" }}</dd>
+  </dl>
+
+  <hr style="margin:1rem 0;">
+
+  <h3>Profissionais desta clínica</h3>
+  {% with profs=clinica.profissionais.all %}
+    {% if profs %}
+      <ul style="padding-left:1rem;">
+        {% for p in profs %}
+          <li>
+            <a href="{% url 'terapias:detalhes-profissional' p.pk %}">{{ p.nome }}</a>
+            — {{ p.get_tipo_display }}{% if p.especialidade %} • {{ p.especialidade }}{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>Nenhum profissional vinculado.</p>
+    {% endif %}
+  {% endwith %}
+
+  <div style="margin-top:1rem;">
+    <a href="{% url 'terapias:criar-clinica' %}">+ Adicionar outra clínica</a>
+    <a href="{% url 'terapias:editar-clinica' clinica.pk %}">Editar</a>
+    <a href="{% url 'terapias:deletar-clinica' clinica.pk %}">Excluir</a>
+  </div>
+</section>
+{% endblock %}

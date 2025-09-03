@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Nova rotina{% endblock %}
+
+{% block content %}
+<section style="max-width:720px;margin:0 auto;padding:1rem;">
+  <h2>Criar rotina</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Salvar e planejar</button>
+  </form>
+</section>
+{% endblock %}

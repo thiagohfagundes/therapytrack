@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ crianca.nome }}{% endblock %}
+
+{% block content %}
+<section style="max-width:800px;margin:0 auto;padding:1rem;">
+  <a href="{% url 'usuario:lista-criancas' %}">← Voltar</a>
+  <h2 style="margin-top:.5rem;">{{ crianca.nome }}</h2>
+
+  <dl style="display:grid;grid-template-columns:180px 1fr;gap:.5rem 1rem;">
+    <dt>Condição</dt><dd>{{ crianca.condicao|default:"—" }}</dd>
+    <dt>Data de nascimento</dt><dd>{{ crianca.data_nascimento|date:"d/m/Y" }}</dd>
+    <dt>Telefone de contato</dt><dd>{{ crianca.telefone_contato|default:"—" }}</dd>
+  </dl>
+
+  <div style="margin-top:1rem;display:flex;gap:.5rem;">
+    <a href="{% url 'usuario:crianca-criar' %}">+ Adicionar outra criança</a>
+    <a href="{% url 'usuario:editar-crianca' crianca.pk %}">Editar</a>
+    <a href="{% url 'usuario:deletar-crianca' crianca.pk %}">Excluir</a>
+  </div>
+</section>
+{% endblock %}
