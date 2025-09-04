@@ -125,14 +125,16 @@ class EventoForm(forms.ModelForm):
 class RotinaForm(forms.ModelForm):
     class Meta:
         model = Rotina
-        fields = ["nome", "descricao", "crianca", "data_termino"]
+        fields = ["nome", "descricao", "crianca", "data_inicio", "data_termino"]
         widgets = {
+            "data_inicio": forms.DateInput(attrs={"type": "date"}),
             "data_termino": forms.DateInput(attrs={"type": "date"}),
         }
         labels = {
             "nome": "Nome da rotina",
             "descricao": "Descrição",
             "crianca": "Criança",
+            "data_inicio": "Data de início",
             "data_termino": "Data de término (opcional)",
         }
 

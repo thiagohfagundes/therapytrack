@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import date
 from usuario.models import Crianca
 from .variaveis_categoricas import TIPOS_PROFISSIONAL, TIPOS_EVENTO, TIPOS_PERIODICIDADE, TIPOS_DIA_SEMANA
 
@@ -47,6 +48,7 @@ class Rotina(models.Model):
     nome = models.CharField(max_length=100, null=True, blank=True)
     descricao = models.TextField(null=True, blank=True)
     crianca = models.ForeignKey(Crianca, on_delete=models.CASCADE, related_name='rotinas')
+    data_inicio = models.DateField(default=date.today, blank=True)
     data_termino = models.DateField(null=True, blank=True)
     criado_por = models.ForeignKey('auth.User', on_delete=models.CASCADE, default='auth.User')
     data_criacao = models.DateTimeField(auto_now_add=True)

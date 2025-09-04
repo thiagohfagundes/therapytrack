@@ -24,7 +24,7 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect("index")  
+            return redirect("terapias:index")  
         else:
             messages.error(request, "Usuário ou senha inválidos.")
     return render(request, "auth/login.html")
@@ -32,7 +32,7 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return redirect("login")
+    return redirect("usuario:login")
 
 
 def register_view(request):
@@ -47,7 +47,7 @@ def register_view(request):
             user = User.objects.create_user(username=username, email=email, password=password)
             login(request, user)
             messages.success(request, "Conta criada com sucesso! 🎉")
-            return redirect("index")
+            return redirect("terapias:index")
 
     return render(request, "auth/register.html")
 

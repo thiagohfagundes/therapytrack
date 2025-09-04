@@ -6,8 +6,55 @@
   <h2>Criar rotina</h2>
   <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
+
+    <p>
+      <label for="{{ form.nome.id_for_label }}">Nome</label>
+      {{ form.nome }} {{ form.nome.errors }}
+    </p>
+
+    <p>
+      <label for="{{ form.descricao.id_for_label }}">Descrição</label>
+      {{ form.descricao }} {{ form.descricao.errors }}
+    </p>
+
+    <p>
+      <label for="{{ form.crianca.id_for_label }}">Criança</label>
+      {{ form.crianca }} {{ form.crianca.errors }}
+    </p>
+
+    <p>
+      <label for="{{ form.data_inicio.id_for_label }}">Data de início</label><br>
+      <span style="display:flex;gap:.5rem;align-items:center;">
+        {{ form.data_inicio }}
+        <a href="#" onclick="return setHoje('id_data_inicio')">Hoje</a>
+        <a href="#" onclick="return setInicioMes('id_data_inicio')">Início do mês</a>
+      </span>
+      {{ form.data_inicio.errors }}
+    </p>
+
+    <p>
+      <label for="{{ form.data_termino.id_for_label }}">Data de término (opcional)</label><br>
+      {{ form.data_termino }} {{ form.data_termino.errors }}
+    </p>
+
     <button type="submit">Salvar e planejar</button>
   </form>
 </section>
+
+<script>
+  function fmt(y,m,d){return y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+  function setHoje(id){
+    var el = document.getElementById(id); if(!el) return false;
+    var dt = new Date();
+    el.value = fmt(dt.getFullYear(), dt.getMonth()+1, dt.getDate());
+    return false; // evita navegação do <a>
+  }
+  function setInicioMes(id){
+    var el = document.getElementById(id); if(!el) return false;
+    var dt = new Date();
+    el.value = fmt(dt.getFullYear(), dt.getMonth()+1, 1);
+    return false;
+  }
+</script>
 {% endblock %}
+
