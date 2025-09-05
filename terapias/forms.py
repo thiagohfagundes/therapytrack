@@ -141,11 +141,17 @@ class RotinaForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         request = kwargs.pop("request", None)
         super().__init__(*args, **kwargs)
-        # ⚠️ Nada de periodicidade/dia/hora aqui.
-        if request and not getattr(request.user, "is_superuser", False):
-            self.fields["crianca"].queryset = Crianca.objects.filter(
-                responsavel=request.user
-            ).order_by("nome")
+
+        # queryset: filhos do usuário se houver, senão todos
+        qs_user = Crianca.objects.none()
+        if request and request.user.is_authenticated:
+            qs_user = Crianca.objects.filter(responsavel=request.user).order_by("nome")
+
+        self.fields["crianca"].queryset = qs_user if qs_user.exists() else Crianca.objects.order_by("nome")
+
+        # default apenas na criação (sem POST) e se houver pelo menos 1 criança do usuário
+        if not self.instance.pk and not self.is_bound and qs_user.exists():
+            self.fields["crianca"].initial = qs_user.first().pk
 
 
 class RotinaItemForm(forms.ModelForm):
@@ -259,13 +265,6 @@ class RotinaItemBulkForm(forms.Form):
         dur = datetime.combine(date.today(), fim) - datetime.combine(date.today(), ini)
 
         for d in dias:
-            existe = RotinaItem.objects.filter(
-                rotina=rotina, dias_semana=d, hora_inicio=ini, hora_fim=fim
-            ).exists()
-            if existe:
-                pulados.append(d)
-                continue
-
             obj = RotinaItem(
                 nome_evento=nome,
                 descricao=desc,

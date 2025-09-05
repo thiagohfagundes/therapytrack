@@ -1,51 +1,178 @@
 {% extends "base.html" %}
-{% block title %}Novo evento{% endblock %}
-
-{% block head_js %}
-  {{ block.super }}
-  <script>
-    // comportamento "Google": ao escolher início, sugere término +1h
-    function sugerirTermino() {
-      const inicio = document.getElementById("id_hora_inicio");
-      const fim = document.getElementById("id_hora_fim");
-      if (!inicio || !fim || !inicio.value) return;
-      // só sugere se o usuário ainda não mexeu no fim
-      if (!fim.dataset.userEdited) {
-        const [h, m] = inicio.value.split(":").map(Number);
-        const end = new Date(2000, 0, 1, h, m);
-        end.setMinutes(end.getMinutes() + 60);
-        const hh = String(end.getHours()).padStart(2, "0");
-        const mm = String(end.getMinutes()).padStart(2, "0");
-        fim.value = `${hh}:${mm}`;
-      }
-    }
-    function markUserEdited(e){ e.target.dataset.userEdited = "1"; }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const inicio = document.getElementById("id_hora_inicio");
-      const fim = document.getElementById("id_hora_fim");
-      if (inicio) inicio.addEventListener("change", sugerirTermino);
-      if (fim) fim.addEventListener("change", markUserEdited);
-
-      // se este template estiver embutido como modal, abrimos automaticamente
-      const dlg = document.getElementById("eventoModal");
-      if (dlg && typeof dlg.showModal === "function") {
-        // só abre se tiver o atributo data-autoshow
-        if (dlg.hasAttribute("data-autoshow")) dlg.showModal();
-      }
-    });
-
-    function fecharModal() {
-      const dlg = document.getElementById("eventoModal");
-      if (dlg && dlg.open) dlg.close();
-    }
-  </script>
-{% endblock %}
+{% block title %}Agenda{% endblock %}
 
 {% block content %}
+<section style="max-width:1200px;margin:0 auto;padding:1rem;">
 
-<button type="button" onclick="document.getElementById('eventoModal').showModal()">+ Novo evento</button>
-<a href="{% url 'terapias:criar-rotina' %}">Nova rotina</a>
+  {% if sem_crianca %}
+    <h2>Agenda</h2>
+    <p>Você ainda não cadastrou uma criança. Crie uma para visualizar a agenda.</p>
+    <p><a href="{% url 'usuario:crianca-criar' %}">+ Cadastrar criança</a></p>
 
-{% include "terapias/componentes/modal_evento.html" %}
+  {% else %}
+
+  <header style="display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px;">
+    <form method="get">
+      <label for="crianca" style="font-weight:600;">Criança:</label>
+      <select id="crianca" name="crianca" onchange="this.form.submit()">
+        {% for c in criancas %}
+          <option value="{{ c.id }}" {% if crianca.id == c.id %}selected{% endif %}>{{ c.nome }}</option>
+        {% endfor %}
+      </select>
+      <input type="hidden" name="d" value="{{ ref_date|date:'Y-m-d' }}">
+    </form>
+
+    <div style="display:flex;gap:8px;align-items:center;">
+      <a href="#" onclick="navWeek(-7);return false;" aria-label="Semana anterior">←</a>
+      <strong>{{ semana_ini|date:"d/m" }} – {{ semana_fim|date:"d/m" }}</strong>
+      <a href="#" onclick="navWeek(7);return false;" aria-label="Próxima semana">→</a>
+      <a href="?crianca={{ crianca.id }}">Hoje</a>
+    </div>
+  </header>
+
+  <!-- Cards de indicadores do mês -->
+  <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px;">
+    <div style="border:1px solid #e5e7eb;border-radius:10px;padding:12px;">
+      <div style="font-size:.85rem;color:#666;">Agendados ({{ m_ini|date:"m/Y" }})</div>
+      <div style="font-size:1.6rem;font-weight:700;">{{ total_agendados }}</div>
+    </div>
+    <div style="border:1px solid #e5e7eb;border-radius:10px;padding:12px;">
+      <div style="font-size:.85rem;color:#666;">Comparecimentos</div>
+      <div style="font-size:1.6rem;font-weight:700;">{{ total_comparecimentos }}</div>
+    </div>
+    <div style="border:1px solid #e5e7eb;border-radius:10px;padding:12px;">
+      <div style="font-size:.85rem;color:#666;">Faltas</div>
+      <div style="font-size:1.6rem;font-weight:700;">{{ total_faltas }}</div>
+    </div>
+    <div style="border:1px solid #e5e7eb;border-radius:10px;padding:12px;">
+      <div style="font-size:.85rem;color:#666;">Pendentes</div>
+      <div style="font-size:1.6rem;font-weight:700;">{{ total_pendentes }}</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;">
+    <!-- Grade semanal -->
+    <div>
+      <div style="display:grid;grid-template-columns:120px repeat(7,1fr);border:1px solid #e5e7eb;">
+        <!-- cabeçalho -->
+        <div></div>
+        {% for d in dias_header %}
+          <div style="border-left:1px solid #e5e7eb;border-top:1px solid #e5e7eb;padding:8px;font-weight:600;">
+            {{ d.label }}<br>
+            <small style="color:#666;">{{ d.date|date:"d/m" }}</small>
+          </div>
+        {% endfor %}
+
+        <!-- linhas por hora -->
+        {% for row in grid_rows %}
+          <div style="border-top:1px solid #e5e7eb;padding:8px;color:#555;">{{ row.hora|time:"H:i" }}</div>
+
+          {% for cell in row.cells %}
+            <div style="border-left:1px solid #e5e7eb;border-top:1px solid #e5e7eb;padding:6px;min-height:48px;">
+              {% for ev in cell.events %}
+                <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:6px;padding:4px 6px;font-size:.85rem;margin-top:4px;">
+                  <div><strong>{{ ev.nome }}</strong> <small>({{ ev.tipo }})</small></div>
+                  <div style="font-size:.8rem;color:#555;">
+                    {{ ev.data_evento|date:"d/m" }}
+                    {% if ev.hora_inicio %} • {{ ev.hora_inicio|time:"H:i" }}–{{ ev.hora_fim|time:"H:i" }}{% endif %}
+                    {% if ev.profissional %} • {{ ev.profissional.nome }}{% endif %}
+                    {% if ev.clinica %} • {{ ev.clinica.nome }}{% endif %}
+                    {% if ev.presenca_confirmada %} • ✅{% else %} • ⌛{% endif %}
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% endfor %}
+        {% endfor %}
+      </div>
+    </div>
+    </div>
+
+    <!-- Lateral: cargas + próximos -->
+    <aside style="display:grid;gap:16px;align-content:start;">
+      <div style="border:1px solid #e5e7eb;border-radius:10px;">
+        <div style="padding:10px 12px;border-bottom:1px solid #e5e7eb;font-weight:600;">
+          Carga do mês por clínica
+        </div>
+        <div style="padding:10px 12px;">
+          {% if por_clinica %}
+            <ul style="list-style:none;padding:0;margin:0;">
+              {% for item in por_clinica %}
+                <li style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #eee;">
+                  <span>{{ item.clinica }}</span>
+                  <strong>{{ item.duracao }}</strong>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p style="color:#666;">Sem dados neste mês.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div style="border:1px solid #e5e7eb;border-radius:10px;">
+        <div style="padding:10px 12px;border-bottom:1px solid #e5e7eb;font-weight:600;">
+          Carga do mês por especialidade
+        </div>
+        <div style="padding:10px 12px;">
+          {% if por_especialidade %}
+            <ul style="list-style:none;padding:0;margin:0;">
+              {% for item in por_especialidade %}
+                <li style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #eee;">
+                  <span>{{ item.especialidade }}</span>
+                  <strong>{{ item.duracao }}</strong>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p style="color:#666;">Sem dados neste mês.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div style="border:1px solid #e5e7eb;border-radius:10px;">
+        <div style="padding:10px 12px;border-bottom:1px solid #e5e7eb;font-weight:600;">
+          Próximas consultas
+        </div>
+        <div style="padding:10px 12px;">
+          {% if proximos %}
+            <ul style="list-style:none;padding:0;margin:0;">
+              {% for ev in proximos %}
+                <li style="padding:6px 0;border-bottom:1px dashed #eee;">
+                  <div><strong>{{ ev.nome }}</strong> <small>({{ ev.tipo }})</small></div>
+                  <div style="font-size:.9rem;color:#555;">
+                    {{ ev.data_evento|date:"d/m/Y" }}
+                    {% if ev.hora_inicio %} • {{ ev.hora_inicio|time:"H:i" }}{% endif %}
+                    {% if ev.profissional %} • {{ ev.profissional.nome }}{% endif %}
+                    {% if ev.clinica %} • {{ ev.clinica.nome }}{% endif %}
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p style="color:#666;">Nenhuma consulta futura.</p>
+          {% endif %}
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  {% endif %}
+
+</section>
+
+<script>
+  // Navegação semanal: altera ?d=YYYY-MM-DD mantendo a criança selecionada
+  function navWeek(deltaDays){
+    const url = new URL(window.location);
+    const d = url.searchParams.get('d');
+    const base = d ? new Date(d) : new Date();
+    base.setDate(base.getDate() + deltaDays);
+    const y = base.getFullYear();
+    const m = String(base.getMonth()+1).padStart(2,'0');
+    const day = String(base.getDate()).padStart(2,'0');
+    url.searchParams.set('d', `${y}-${m}-${day}`);
+    window.location = url.toString();
+  }
+</script>
 {% endblock %}

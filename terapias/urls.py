@@ -5,7 +5,7 @@ from . import views
 app_name = "terapias"
 
 urlpatterns = [
-    path('', views.index, name='index'),
+    path('', views.AgendaIndexView.as_view(), name='index'),
 
     # CLINICAS
     path("clinicas/", views.ClinicaListView.as_view(), name="lista-clinicas"),
@@ -28,4 +28,6 @@ urlpatterns = [
     path("rotinas/nova/", views.RotinaCriarView.as_view(), name="criar-rotina"),
     path("rotinas/<int:pk>/planejar/", views.RotinaPlanejarView.as_view(), name="planejar-rotina"),
     path("rotinas/<int:pk>/novo-item/", views.RotinaItemModalView.as_view(), name="novo-item-rotina"),
+    path("rotinas/itens/<int:item_id>/editar/", views.RotinaItemEditarModalView.as_view(), name="editar-item-rotina"),
+    path("rotinas/itens/<int:item_id>/excluir/", views.RotinaItemExcluirView.as_view(), name="excluir-item-rotina"),
 ]

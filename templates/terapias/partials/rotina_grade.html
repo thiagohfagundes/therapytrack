@@ -16,7 +16,12 @@
         <div style="border-left:1px solid #e5e7eb;border-top:1px solid #e5e7eb;padding:6px;min-height:44px;">
           {% for it in itens %}
             {% if it.dias_semana == key and it.hora_inicio == h %}
-              <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:6px;padding:4px 6px;font-size:.85rem;margin-top:4px;">
+              <div
+                style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:6px;padding:4px 6px;font-size:.85rem;margin-top:4px; cursor:pointer;"
+                hx-get="{% url 'terapias:editar-item-rotina' it.pk %}"
+                hx-target="#modal"
+                hx-swap="outerHTML"
+              >
                 <div><strong>{{ it.nome_evento }}</strong></div>
                 <div style="font-size:.8rem;color:#555;">
                   {{ it.hora_inicio|time:"H:i" }}–{{ it.hora_fim|time:"H:i" }}
